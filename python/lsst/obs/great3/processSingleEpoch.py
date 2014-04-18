@@ -60,7 +60,7 @@ class ProcessSingleEpochTask(lsst.pipe.base.CmdLineTask):
 
     ConfigClass = ProcessSingleEpochConfig
 
-    _DefaultName = "ProcessSingleEpoch"
+    _DefaultName = "processSingleEpoch"
 
     def __init__(self, **kwds):
         lsst.pipe.base.CmdLineTask.__init__(self, **kwds)

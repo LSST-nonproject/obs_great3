@@ -1,4 +1,5 @@
 setupRequired(pipe_tasks)
+setupOptional(meas_extensions_shapeHSM)
 
 envPrepend(PYTHONPATH, ${PRODUCT_DIR}/python)
 envPrepend(PATH, ${PRODUCT_DIR}/bin)
