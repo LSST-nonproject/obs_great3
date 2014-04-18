@@ -22,7 +22,6 @@
 #
 
 import numpy
-
 import lsst.daf.base
 import lsst.pex.config
 import lsst.pipe.base
@@ -30,8 +29,14 @@ import lsst.afw.table
 import lsst.afw.image
 from lsst.meas.algorithms import SourceMeasurementTask
 
+from .buildPsf import *
+
 class ProcessSingleEpochConfig(lsst.pex.config.Config):
 
+    psf = lsst.pex.config.ConfigurableField(
+        target = BuildControlPsfTask,
+        doc = "PSF determination"
+    )
     measurement = lsst.pex.config.ConfigurableField(
         target = SourceMeasurementTask,
         doc = "Measurement of source properties"
@@ -45,13 +50,11 @@ class ProcessSingleEpochConfig(lsst.pex.config.Config):
 
     def setDefaults(self):
         lsst.pex.config.Config.setDefaults(self)
-        self.measurement.slots.centroid = "centroid.gaussian"
+        self.measurement.slots.centroid = "centroid.sdss"
         self.measurement.slots.instFlux = None
-        self.measurement.slots.psfFlux = None
         self.measurement.slots.modelFlux = None
         self.measurement.slots.apFlux = "flux.sinc"
-        self.measurement.centroider = "centroid.gaussian"
-        self.measurement.algorithms = ["shape.sdss", "flux.sinc"]
+        self.measurement.algorithms = ["shape.sdss", "flux.sinc", "flux.psf"]
 
 class ProcessSingleEpochTask(lsst.pipe.base.CmdLineTask):
 
@@ -63,6 +66,7 @@ class ProcessSingleEpochTask(lsst.pipe.base.CmdLineTask):
         lsst.pipe.base.CmdLineTask.__init__(self, **kwds)
         self.schema = lsst.afw.table.SourceTable.makeMinimalSchema()
         self.algMetadata = lsst.daf.base.PropertyList()
+        self.makeSubtask("psf")
         self.makeSubtask("measurement", schema=self.schema, algMetadata=self.algMetadata)
 
     def computeVariance(self, image):
@@ -83,6 +87,7 @@ class ProcessSingleEpochTask(lsst.pipe.base.CmdLineTask):
         exposure = lsst.afw.image.ExposureF(image.getBBox(lsst.afw.image.PARENT))
         exposure.getMaskedImage().getImage().getArray()[:,:] = image.getArray()
         exposure.getMaskedImage().getVariance().set(self.computeVariance(image))
+        exposure.setPsf(self.psf.run(dataRef))
         return exposure
 
     def buildSourceCatalog(self, imageBBox, dataRef):
@@ -118,7 +123,8 @@ class ProcessSingleEpochTask(lsst.pipe.base.CmdLineTask):
     @classmethod
     def _makeArgumentParser(cls):
         parser = lsst.pipe.base.ArgumentParser(name=cls._DefaultName)
-        parser.add_id_argument(name="--id", datasetType="image", level="image", help="data ID, e.g. --id subfield=0")
+        parser.add_id_argument(name="--id", datasetType="image", level="image",
+                               help="data ID, e.g. --id subfield=0")
         return parser
 
     def writeConfig(self, butler, clobber=False):
@@ -128,4 +134,7 @@ class ProcessSingleEpochTask(lsst.pipe.base.CmdLineTask):
         pass
 
     def writeMetadata(self, dataRef):
+        pass
+
+    def writeEupsVersions(self, butler, clobber=False):
         pass
