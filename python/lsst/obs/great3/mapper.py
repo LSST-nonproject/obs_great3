@@ -157,6 +157,16 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             keys={"subfield": int},
             ranges=dict(subfield=(0,5))
             ),
+        shear = CatalogDatasetDefinition(
+            template="shear.fits",
+            python="lsst.afw.table.SourceCatalog",
+            keys={}
+            ),
+        deep_shear = CatalogDatasetDefinition(
+            template="deep_shear.fits",
+            python="lsst.afw.table.SourceCatalog",
+            keys={},
+            ),
         )
 
     levels = dict(
