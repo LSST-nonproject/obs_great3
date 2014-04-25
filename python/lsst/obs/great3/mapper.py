@@ -159,12 +159,12 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             ),
         shear = CatalogDatasetDefinition(
             template="shear.fits",
-            python="lsst.afw.table.SourceCatalog",
+            python="lsst.afw.table.BaseCatalog",
             keys={}
             ),
         deep_shear = CatalogDatasetDefinition(
             template="deep_shear.fits",
-            python="lsst.afw.table.SourceCatalog",
+            python="lsst.afw.table.BaseCatalog",
             keys={},
             ),
         )
