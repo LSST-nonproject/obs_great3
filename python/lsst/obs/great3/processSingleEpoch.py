@@ -27,68 +27,17 @@ import lsst.pex.config
 import lsst.pipe.base
 import lsst.afw.table
 import lsst.afw.image
-from lsst.meas.algorithms import SourceMeasurementTask
 
-from .buildPsf import *
+from .processBase import *
 
-class ProcessSingleEpochConfig(lsst.pex.config.Config):
+class ProcessSingleEpochConfig(ProcessBaseConfig):
+    pass
 
-    psf = lsst.pex.config.ConfigurableField(
-        target = BuildControlPsfTask,
-        doc = "PSF determination"
-    )
-    measurement = lsst.pex.config.ConfigurableField(
-        target = SourceMeasurementTask,
-        doc = "Measurement of source properties"
-    )
-    varianceBorderWidth = lsst.pex.config.Field(
-        dtype=int,
-        default=1,
-        doc=("Use a border of this many pixels around each postage stamp (combined over the full image)"
-             " to compute the variance")
-    )
-
-    def setDefaults(self):
-        lsst.pex.config.Config.setDefaults(self)
-        self.measurement.slots.centroid = "centroid.sdss"
-        self.measurement.slots.instFlux = None
-        self.measurement.slots.modelFlux = None
-        self.measurement.slots.apFlux = "flux.sinc"
-        self.measurement.algorithms = ["shape.sdss", "flux.sinc", "flux.psf"]
-
-class ProcessSingleEpochTask(lsst.pipe.base.CmdLineTask):
+class ProcessSingleEpochTask(ProcessBaseTask):
 
     ConfigClass = ProcessSingleEpochConfig
 
     _DefaultName = "processSingleEpoch"
-
-    def __init__(self, **kwds):
-        lsst.pipe.base.CmdLineTask.__init__(self, **kwds)
-        self.schema = lsst.afw.table.SourceTable.makeMinimalSchema()
-        self.algMetadata = lsst.daf.base.PropertyList()
-        self.makeSubtask("psf")
-        self.makeSubtask("measurement", schema=self.schema, algMetadata=self.algMetadata)
-
-    def computeVariance(self, image):
-        array = image.getArray()
-        n = array.shape[0] / 100
-        assert n * 100 == array.shape[0]
-        mask = numpy.zeros(array.shape, dtype=bool)
-        for i in range(self.config.varianceBorderWidth):
-            mask[i::n,:] = True
-            mask[:,i::n] = True
-            mask[n-i::n,:] = True
-            mask[:,n-i::n] = True
-        borderPixels = array[mask]
-        return numpy.std(borderPixels, dtype=numpy.float64)**2
-
-    def buildExposure(self, dataRef):
-        image = dataRef.get("image", immediate=True)
-        exposure = lsst.afw.image.ExposureF(image.getBBox(lsst.afw.image.PARENT))
-        exposure.getMaskedImage().getImage().getArray()[:,:] = image.getArray()
-        exposure.getMaskedImage().getVariance().set(self.computeVariance(image))
-        exposure.setPsf(self.psf.run(dataRef))
-        return exposure
 
     def buildSourceCatalog(self, imageBBox, dataRef):
         """Build an empty source catalog, using the provided sim catalog's position to generate
