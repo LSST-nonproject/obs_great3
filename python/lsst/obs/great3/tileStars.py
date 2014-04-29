@@ -64,6 +64,11 @@ class TileStarsConfig(lsst.pex.config.Config):
         doc=("Use a border of this many pixels around each postage stamp (combined over the full image)"
              " to compute the variance")
     )
+    doSkipCompleted = lsst.pex.config.Field(
+        dtype=bool,
+        default=True,
+        doc="Skip data IDs that have already been processed"
+    )
 
     def setDefaults(self):
         lsst.pex.config.Config.setDefaults(self)
@@ -181,6 +186,9 @@ class TileStarsTask(lsst.pipe.base.CmdLineTask):
         return exposure, catalog
 
     def run(self, dataRef):
+        if self.config.doSkipCompleted and dataRef.datasetExists("subtile_star_catalog"):
+            self.log.info("Skipping %s; already completed" % dataRef.dataId)
+
         self.log.info("Tiling stars for %s" % dataRef.dataId)
 
         seed = hash(tuple(dataRef.dataId.values()))
