@@ -56,7 +56,7 @@ class DatasetDefinition(object):
                 newPath = mapper._parentSearch(path)
                 if newPath is not None:
                     path = newPath
-            return self.makeButlerLocation(path, dataId, suffix="")
+            return self.makeButlerLocation(path, dataId, suffix=suffix)
         setattr(cls, "map_%s%s" % (name, suffix), map)
         def query(mapper, level, format, dataId):
             current = [[]]
@@ -87,7 +87,7 @@ class ImageDatasetDefinition(DatasetDefinition):
         elif suffix == "_sub":
             subId = dataId.copy()
             bbox = subId.pop('bbox')
-            loc = DatasetDefinition.makeButlerLocation(path, subId, suffix="")
+            loc = DatasetDefinition.makeButlerLocation(self, path, subId, suffix="")
             loc.additionalData.set('llcX', bbox.getMinX())
             loc.additionalData.set('llcY', bbox.getMinY())
             loc.additionalData.set('width', bbox.getWidth())
@@ -177,7 +177,17 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             template="star_index-{field:03d}.fits",
             python="lsst.afw.table.BaseCatalog",
             keys={"field": int},
-            )
+            ),
+        subtile_star_image = ImageDatasetDefinition(
+            template="subtile_star_image-{field:03d}-{epoch:01d}-{tx:01d}x{ty:01d}-{sx:02d}x{sy:02d}.fits.gz",
+            python="lsst.afw.image.ExposureF",
+            keys={"field": int, "epoch": int, "tx": int, "ty": int, "sx": int, "sy": int},
+            ),
+        subtile_star_catalog = CatalogDatasetDefinition(
+            template="subtile_star_catalog-{field:03d}-{epoch:01d}-{tx:01d}x{ty:01d}-{sx:02d}x{sy:02d}.fits.gz",
+            python="lsst.afw.table.SourceCatalog",
+            keys={"field": int, "epoch": int, "tx": int, "ty": int, "sx": int, "sy": int},
+            ),
         )
 
     levels = dict(
