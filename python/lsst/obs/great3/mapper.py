@@ -26,6 +26,7 @@ structure.
 """
 
 import os
+import lsst.afw.geom
 import lsst.daf.persistence
 
 class DatasetDefinition(object):
@@ -109,6 +110,11 @@ class CatalogDatasetDefinition(DatasetDefinition):
 
 class Great3Mapper(lsst.daf.persistence.Mapper):
 
+    PIXEL_SCALE = 0.2*lsst.afw.geom.arcseconds
+    PSTAMP_SIZE = 48
+    FIELD_SIZE = 10*lsst.afw.geom.degrees
+    TILE_SIZE = 2*lsst.afw.geom.degrees
+
     datasets = dict(
         image = ImageDatasetDefinition(
             template="image-{subfield:03d}-{epoch:01d}.fits",
@@ -167,6 +173,11 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             python="lsst.afw.table.BaseCatalog",
             keys={},
             ),
+        star_index = CatalogDatasetDefinition(
+            template="star_index-{field:03d}.fits",
+            python="lsst.afw.table.BaseCatalog",
+            keys={"field": int},
+            )
         )
 
     levels = dict(
@@ -182,6 +193,7 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
     )
 
     ranges = dict(
+        field = (0, 200, 20),
         subfield = (0, 200),
         epoch = (0, 1),
         )
