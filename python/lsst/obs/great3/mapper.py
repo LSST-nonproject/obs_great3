@@ -53,7 +53,14 @@ class DatasetDefinition(object):
         def map(mapper, dataId, write=False):
             path = os.path.join(mapper.root, self.template.format(**dataId))
             if not write:
-                newPath = mapper._parentSearch(path)
+                # handle the convention for specifying hdu index in brackets
+                bracket = path.find("[")
+                if bracket > 0:
+                    newPath = mapper._parentSearch(path[:bracket])
+                    if newPath is not None:
+                        newPath = newPath + path[bracket:]
+                else:
+                    newPath = mapper._parentSearch(path)
                 if newPath is not None:
                     path = newPath
             return self.makeButlerLocation(path, dataId, suffix=suffix)
@@ -133,6 +140,14 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             template="deep_starfield_image-{subfield:03d}-{epoch:01d}.fits",
             keys={"subfield": int, "epoch": int},
             ranges=dict(subfield=(0,5))
+            ),
+        epoch_catalog = CatalogDatasetDefinition(
+            template="epoch_catalog-{subfield:03d}-{epoch:01d}.fits",
+            keys={"subfield": int, "epoch": int}
+            ),
+        psf_library = ImageDatasetDefinition(
+            template="psf_library.{psf_file_number:d}.fits[{psf_index:d}]",
+            keys={"psf_file_number": int, "psf_index": long}
             ),
         galaxy_catalog = CatalogDatasetDefinition(
             template="galaxy_catalog-{subfield:03d}.fits",

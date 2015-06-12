@@ -55,7 +55,7 @@ class MakeShearCatalogConfig(lsst.pex.config.Config):
     distortionField = lsst.pex.config.Field(
         dtype=str,
         doc=("Prefix for field containing distortion values in .e1, .e2, and error in .err"),
-        default="shape.hsm.regauss",
+        default="ext_shapeHSM_HsmShapeRegauss",
         )
     useImprovedSigmaFactor = lsst.pex.config.Field(
         dtype=bool,

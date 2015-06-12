@@ -31,7 +31,8 @@ import lsst.afw.image
 from .processBase import *
 
 class ProcessSingleEpochConfig(ProcessBaseConfig):
-    pass
+    galaxyStampSize = lsst.pex.config.Field(dtype=int, default=50, optional=False,
+                                  doc="Cutout size for galaxies")
 
 class ProcessSingleEpochTask(ProcessBaseTask):
 
@@ -49,8 +50,9 @@ class ProcessSingleEpochTask(ProcessBaseTask):
         xKey = simCat.schema.find('x').key
         yKey = simCat.schema.find('y').key
         idKey = simCat.schema.find('ID').key
-        n = imageBBox.getWidth() / 100
-        assert n * 100 == imageBBox.getWidth()
+        nGals = imageBBox.getWidth() / self.config.galaxyStampSize
+        assert nGals * self.config.galaxyStampSize == imageBBox.getWidth()
+        n = imageBBox.getWidth() / nGals
         dims = lsst.afw.geom.Extent2I(n, n)
         offset = lsst.afw.geom.Extent2I(simCat[0][xKey], simCat[0][yKey])
         for simRecord in simCat:
@@ -59,7 +61,9 @@ class ProcessSingleEpochTask(ProcessBaseTask):
             position = lsst.afw.geom.Point2I(simRecord.get(xKey), simRecord.get(yKey))
             bbox = lsst.afw.geom.Box2I(position - offset, dims)
             footprint = lsst.afw.detection.Footprint(bbox, imageBBox)
-            footprint.getPeaks().push_back(lsst.afw.detection.Peak(position.getX(), position.getY()))
+            peakRecord = footprint.getPeaks().addNew()
+            peakRecord.setFx(position.getX())
+            peakRecord.setFy(position.getY())
             sourceRecord.setFootprint(footprint)
         return sourceCat
 

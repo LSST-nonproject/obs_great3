@@ -27,7 +27,7 @@ import lsst.pex.config
 import lsst.pipe.base
 import lsst.afw.table
 import lsst.afw.image
-from lsst.meas.algorithms import SourceMeasurementTask
+from lsst.meas.base import SingleFrameMeasurementTask
 
 from .buildPsf import *
 
@@ -38,7 +38,7 @@ class ProcessBaseConfig(lsst.pex.config.Config):
         doc = "PSF determination"
     )
     measurement = lsst.pex.config.ConfigurableField(
-        target = SourceMeasurementTask,
+        target = SingleFrameMeasurementTask,
         doc = "Measurement of source properties"
     )
     varianceBorderWidth = lsst.pex.config.Field(
@@ -47,14 +47,20 @@ class ProcessBaseConfig(lsst.pex.config.Config):
         doc=("Use a border of this many pixels around each postage stamp (combined over the full image)"
              " to compute the variance")
     )
+    galaxyStampSize = lsst.pex.config.Field(
+        dtype=int,
+        default=48,
+        optional=False,
+        doc="Cutout size for galaxies"
+    )
 
     def setDefaults(self):
         lsst.pex.config.Config.setDefaults(self)
-        self.measurement.slots.centroid = "centroid.sdss"
+        self.measurement.slots.centroid = "base_SdssCentroid"
         self.measurement.slots.instFlux = None
         self.measurement.slots.modelFlux = None
-        self.measurement.slots.apFlux = "flux.sinc"
-        self.measurement.algorithms = ["shape.sdss", "flux.sinc", "flux.psf"]
+        self.measurement.slots.apFlux = "base_GaussianFlux"
+        self.measurement.algorithms.names = ["base_SdssCentroid", "base_SdssShape", "base_GaussianFlux", "base_PsfFlux"]
 
 class ProcessBaseTask(lsst.pipe.base.CmdLineTask):
 
@@ -69,8 +75,9 @@ class ProcessBaseTask(lsst.pipe.base.CmdLineTask):
 
     def computeVariance(self, image):
         array = image.getArray()
-        n = array.shape[0] / 100
-        assert n * 100 == array.shape[0]
+        nGals = array.shape[0] / self.config.galaxyStampSize
+        assert nGals * self.config.galaxyStampSize == array.shape[0]
+        n = array.shape[0] / nGals
         mask = numpy.zeros(array.shape, dtype=bool)
         for i in range(self.config.varianceBorderWidth):
             mask[i::n,:] = True
