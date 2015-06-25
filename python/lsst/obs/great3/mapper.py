@@ -146,8 +146,8 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             keys={"subfield": int, "epoch": int}
             ),
         psf_library = ImageDatasetDefinition(
-            template="psf_library.{psf_file_number:d}.fits[{psf_index:d}]",
-            keys={"psf_file_number": int, "psf_index": long}
+            template="psfs/psf_library.{psf_library:02d}.fits[{psf_index:d}]",
+            keys={"psf_library": int, "psf_index": int}
             ),
         galaxy_catalog = CatalogDatasetDefinition(
             template="galaxy_catalog-{subfield:03d}.fits",
@@ -209,6 +209,7 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
         image = [],
         subfield = ['epoch'],
         epoch = ['subfield'],
+        psf_library = ['psf_library']
     )
 
     defaultLevel = "image"
@@ -221,6 +222,7 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
         field = (0, 200, 20),
         subfield = (0, 200),
         epoch = (0, 1),
+        psf_library = (0,0)
         )
 
     deep_ranges = dict(

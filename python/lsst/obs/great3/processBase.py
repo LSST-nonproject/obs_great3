@@ -75,6 +75,9 @@ class ProcessBaseTask(lsst.pipe.base.CmdLineTask):
 
     def computeVariance(self, image):
         array = image.getArray()
+        #   When calculating the galaxy stamp size, the previous code assumed a 100x100 layout
+        #   This code takes the stamp size from the configuration setting and uses it to calculate
+        #   the stamp size and dimension of the grid.
         nGals = array.shape[0] / self.config.galaxyStampSize
         assert nGals * self.config.galaxyStampSize == array.shape[0]
         n = array.shape[0] / nGals

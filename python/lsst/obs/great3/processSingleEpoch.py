@@ -31,8 +31,6 @@ import lsst.afw.image
 from .processBase import *
 
 class ProcessSingleEpochConfig(ProcessBaseConfig):
-    galaxyStampSize = lsst.pex.config.Field(dtype=int, default=50, optional=False,
-                                  doc="Cutout size for galaxies")
 
 class ProcessSingleEpochTask(ProcessBaseTask):
 
@@ -50,6 +48,9 @@ class ProcessSingleEpochTask(ProcessBaseTask):
         xKey = simCat.schema.find('x').key
         yKey = simCat.schema.find('y').key
         idKey = simCat.schema.find('ID').key
+        #   When calculating the galaxy stamp size, the previous code assumed a 100x100 layout
+        #   This code takes the stamp size from the configuration setting and uses it to calculate
+        #   the stamp size and dimension of the grid.
         nGals = imageBBox.getWidth() / self.config.galaxyStampSize
         assert nGals * self.config.galaxyStampSize == imageBBox.getWidth()
         n = imageBBox.getWidth() / nGals
