@@ -146,7 +146,7 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             keys={"subfield": int, "epoch": int}
             ),
         psf_library = ImageDatasetDefinition(
-            template="psfs/psf_library.{psf_library:02d}.fits[{psf_index:d}]",
+            template="psfs/psf_library_{psf_library:02d}.fits[{psf_index:d}]",
             keys={"psf_library": int, "psf_index": int}
             ),
         galaxy_catalog = CatalogDatasetDefinition(
