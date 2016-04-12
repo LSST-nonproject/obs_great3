@@ -53,7 +53,14 @@ class DatasetDefinition(object):
         def map(mapper, dataId, write=False):
             path = os.path.join(mapper.root, self.template.format(**dataId))
             if not write:
-                newPath = mapper._parentSearch(path)
+                # handle the convention for specifying hdu index in brackets
+                bracket = path.find("[")
+                if bracket > 0:
+                    newPath = mapper._parentSearch(path[:bracket])
+                    if newPath is not None:
+                        newPath = newPath + path[bracket:]
+                else:
+                    newPath = mapper._parentSearch(path)
                 if newPath is not None:
                     path = newPath
             return self.makeButlerLocation(path, dataId, suffix=suffix)
@@ -114,51 +121,67 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
     PSTAMP_SIZE = 48
     FIELD_SIZE = 10*lsst.afw.geom.degrees
     TILE_SIZE = 2*lsst.afw.geom.degrees
-
     datasets = dict(
         image = ImageDatasetDefinition(
-            template="image-{subfield:03d}-{epoch:01d}.fits",
+            template="image-{subfield:04d}-{epoch:01d}.fits",
             keys={"subfield": int, "epoch": int},
             ),
         starfield_image = ImageDatasetDefinition(
-            template="starfield_image-{subfield:03d}-{epoch:01d}.fits",
+            template="starfield_image-{subfield:04d}-{epoch:01d}.fits",
             keys={"subfield": int, "epoch": int},
             ),
         deep_image = ImageDatasetDefinition(
-            template="deep_image-{subfield:03d}-{epoch:01d}.fits",
+            template="deep_image-{subfield:04d}-{epoch:01d}.fits",
             keys={"subfield": int, "epoch": int},
             ranges=dict(subfield=(0,5))
             ),
         deep_starfield_image = ImageDatasetDefinition(
-            template="deep_starfield_image-{subfield:03d}-{epoch:01d}.fits",
+            template="deep_starfield_image-{subfield:04d}-{epoch:01d}.fits",
             keys={"subfield": int, "epoch": int},
             ranges=dict(subfield=(0,5))
             ),
+        epoch_catalog = CatalogDatasetDefinition(
+            template="epoch_catalog-{subfield:04d}-{epoch:01d}.fits",
+            keys={"subfield": int, "epoch": int}
+            ),
+        psf_library = ImageDatasetDefinition(
+            template="psfs/psf_library_{psf_library:-02d}.fits[{psf_index:d}]",
+            keys={"psf_file_number": int, "psf_index": long}
+            ),
+        psf_file = ImageDatasetDefinition(
+            template="psfs/psf_{psf_number:-2d}.fits",
+            keys={"psf_number": long}
+            ),
         galaxy_catalog = CatalogDatasetDefinition(
-            template="galaxy_catalog-{subfield:03d}.fits",
+            template="galaxy_catalog-{subfield:04d}.fits",
             keys={"subfield": int}
             ),
         deep_galaxy_catalog = CatalogDatasetDefinition(
-            template="deep_galaxy_catalog-{subfield:03d}.fits",
+            template="deep_galaxy_catalog-{subfield:04d}.fits",
             keys={"subfield": int},
             ranges=dict(subfield=(0,5))
             ),
         star_catalog = CatalogDatasetDefinition(
-            template="star_catalog-{subfield:03d}.fits",
+            template="star_catalog-{subfield:04d}.fits",
             keys={"subfield": int}
             ),
         deep_star_catalog = CatalogDatasetDefinition(
-            template="deep_star_catalog-{subfield:03d}.fits",
+            template="deep_star_catalog-{subfield:04d}.fits",
             keys={"subfield": int},
             ranges=dict(subfield=(0,5))
             ),
         src = CatalogDatasetDefinition(
-            template="src-{subfield:03d}.fits",
+            template="src-{subfield:04d}.fits",
             python="lsst.afw.table.SourceCatalog",
             keys={"subfield": int}
             ),
+        test_src = CatalogDatasetDefinition(
+            template="{test:s}/src-{subfield:04d}.fits",
+            python="lsst.afw.table.SourceCatalog",
+            keys={"subfield": int, "test": str}
+            ),
         deep_src = CatalogDatasetDefinition(
-            template="deep_src-{subfield:03d}.fits",
+            template="deep_src-{subfield:04d}.fits",
             python="lsst.afw.table.SourceCatalog",
             keys={"subfield": int},
             ranges=dict(subfield=(0,5))
@@ -174,17 +197,17 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             keys={},
             ),
         star_index = CatalogDatasetDefinition(
-            template="star_index-{field:03d}.fits",
+            template="star_index-{field:04d}.fits",
             python="lsst.afw.table.BaseCatalog",
             keys={"field": int},
             ),
         subtile_star_image = ImageDatasetDefinition(
-            template="subtile_star_image-{field:03d}-{epoch:01d}-{tx:01d}x{ty:01d}-{sx:02d}x{sy:02d}.fits.gz",
+            template="subtile_star_image-{field:04d}-{epoch:01d}-{tx:01d}x{ty:01d}-{sx:02d}x{sy:02d}.fits.gz",
             python="lsst.afw.image.ExposureF",
             keys={"field": int, "epoch": int, "tx": int, "ty": int, "sx": int, "sy": int},
             ),
         subtile_star_catalog = CatalogDatasetDefinition(
-            template="subtile_star_catalog-{field:03d}-{epoch:01d}-{tx:01d}x{ty:01d}-{sx:02d}x{sy:02d}.fits.gz",
+            template="subtile_star_catalog-{field:04d}-{epoch:01d}-{tx:01d}x{ty:01d}-{sx:02d}x{sy:02d}.fits.gz",
             python="lsst.afw.table.SourceCatalog",
             keys={"field": int, "epoch": int, "tx": int, "ty": int, "sx": int, "sy": int},
             ),
@@ -329,6 +352,10 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             if not os.path.exists(newDir):
                 os.makedirs(newDir)
             shutil.copy(oldPath, "%s~%d" % (newPath, n))
+
+    @staticmethod
+    def getPackageName():
+        return "obs_great3"
 
     @staticmethod
     def getCameraName():
