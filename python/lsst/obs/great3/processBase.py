@@ -27,6 +27,7 @@ import lsst.pex.config
 import lsst.pipe.base
 import lsst.afw.table
 import lsst.afw.image
+import lsst.meas.extensions.shapeHSM
 from lsst.meas.algorithms import SourceMeasurementTask
 
 from .buildPsf import *
@@ -55,7 +56,7 @@ class ProcessBaseConfig(lsst.pex.config.Config):
         self.measurement.slots.modelFlux = None
         self.measurement.slots.calibFlux = None
         self.measurement.slots.apFlux = "flux.sinc"
-        self.measurement.algorithms = ["shape.sdss", "flux.sinc", "flux.psf"]
+        self.measurement.algorithms = ["shape.sdss", "flux.sinc", "flux.psf", "shape.hsm.regauss"]
 
 class ProcessBaseTask(lsst.pipe.base.CmdLineTask):
 
