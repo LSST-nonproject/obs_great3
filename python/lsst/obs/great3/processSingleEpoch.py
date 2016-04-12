@@ -52,11 +52,11 @@ class ProcessSingleEpochTask(ProcessBaseTask):
         n = imageBBox.getWidth() / 100
         assert n * 100 == imageBBox.getWidth()
         dims = lsst.afw.geom.Extent2I(n, n)
-        offset = lsst.afw.geom.Extent2I(simCat[0][xKey], simCat[0][yKey])
+        offset = lsst.afw.geom.Extent2I(int(simCat[0][xKey]), int(simCat[0][yKey]))
         for simRecord in simCat:
             sourceRecord = sourceCat.addNew()
             sourceRecord.setId(simRecord.get(idKey))
-            position = lsst.afw.geom.Point2I(simRecord.get(xKey), simRecord.get(yKey))
+            position = lsst.afw.geom.Point2I(int(simRecord.get(xKey)), int(simRecord.get(yKey)))
             bbox = lsst.afw.geom.Box2I(position - offset, dims)
             footprint = lsst.afw.detection.Footprint(bbox, imageBBox)
             footprint.getPeaks().push_back(lsst.afw.detection.Peak(position.getX(), position.getY()))
