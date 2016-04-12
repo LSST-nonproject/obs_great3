@@ -76,14 +76,14 @@ class ProcessSingleEpochTask(ProcessBaseTask):
                                help="data ID, e.g. --id subfield=0")
         return parser
 
-    def writeConfig(self, butler, clobber=False):
+    def writeConfig(self, butler, clobber=False, doBackup=False):
         pass
 
-    def writeSchemas(self, butler, clobber=False):
+    def writeSchemas(self, butler, clobber=False, doBackup=False):
         pass
 
     def writeMetadata(self, dataRef):
         pass
 
-    def writeEupsVersions(self, butler, clobber=False):
+    def writeEupsVersions(self, butler, clobber=False, doBackup=False):
         pass
