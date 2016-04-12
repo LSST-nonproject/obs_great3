@@ -45,10 +45,10 @@ class ProcessSingleEpochTask(ProcessBaseTask):
         """
         sourceCat = lsst.afw.table.SourceCatalog(self.schema)
         sourceCat.getTable().setMetadata(self.algMetadata)
-        simCat = dataRef.get("galaxy_catalog", immediate=True)
+        simCat = dataRef.get("epoch_catalog", immediate=True)
         xKey = simCat.schema.find('x').key
         yKey = simCat.schema.find('y').key
-        idKey = simCat.schema.find('ID').key
+        idKey = simCat.schema.find('num').key
         n = imageBBox.getWidth() / 100
         assert n * 100 == imageBBox.getWidth()
         dims = lsst.afw.geom.Extent2I(n, n)
