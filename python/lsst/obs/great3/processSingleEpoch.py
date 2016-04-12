@@ -45,7 +45,7 @@ class ProcessSingleEpochTask(ProcessBaseTask):
         """
         sourceCat = lsst.afw.table.SourceCatalog(self.schema)
         sourceCat.getTable().setMetadata(self.algMetadata)
-        simCat = dataRef.get("epoch_catalog", immediate=True)
+        simCat = dataRef.get(self.config.dataType + "epoch_catalog", immediate=True)
         xKey = simCat.schema.find('x').key
         yKey = simCat.schema.find('y').key
         idKey = simCat.schema.find('num').key
@@ -68,7 +68,7 @@ class ProcessSingleEpochTask(ProcessBaseTask):
         exposure = self.buildExposure(dataRef)
         sourceCat = self.buildSourceCatalog(exposure.getBBox(lsst.afw.image.PARENT), dataRef)
         self.measurement.run(exposure, sourceCat)
-        dataRef.put(sourceCat, "src")
+        dataRef.put(sourceCat, self.config.dataType + "src")
 
     @classmethod
     def _makeArgumentParser(cls):

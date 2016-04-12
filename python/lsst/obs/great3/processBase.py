@@ -48,6 +48,11 @@ class ProcessBaseConfig(lsst.pex.config.Config):
         doc=("Use a border of this many pixels around each postage stamp (combined over the full image)"
              " to compute the variance")
     )
+    dataType = lsst.pex.config.Field(
+        dtype=str,
+        default='',
+        doc=("default data type")
+    )
 
     def setDefaults(self):
         lsst.pex.config.Config.setDefaults(self)
@@ -83,9 +88,9 @@ class ProcessBaseTask(lsst.pipe.base.CmdLineTask):
         return numpy.std(borderPixels, dtype=numpy.float64)**2
 
     def buildExposure(self, dataRef):
-        image = dataRef.get("image", immediate=True)
+        image = dataRef.get(self.config.dataType + "image", immediate=True)
         exposure = lsst.afw.image.ExposureF(image.getBBox(lsst.afw.image.PARENT))
         exposure.getMaskedImage().getImage().getArray()[:,:] = image.getArray()
         exposure.getMaskedImage().getVariance().set(self.computeVariance(image))
-        exposure.setPsf(self.psf.run(dataRef))
+        exposure.setPsf(self.psf.run(dataRef, self.config.dataType))
         return exposure

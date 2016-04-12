@@ -47,8 +47,8 @@ class BuildControlPsfTask(lsst.pipe.base.Task):
     def __init__(self, **kwds):
         lsst.pipe.base.Task.__init__(self, **kwds)
 
-    def run(self, dataRef):
-        image = dataRef.get("starfield_image", immediate=True)
+    def run(self, dataRef, dataType):
+        image = dataRef.get(dataType + "starfield_image", immediate=True)
         nx = image.getWidth()/3-1
         ny = image.getWidth()/3-1
         # extract only the lower-left image
