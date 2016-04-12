@@ -131,17 +131,21 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             keys={"subfield": int, "epoch": int},
             ),
         deep_image = ImageDatasetDefinition(
-            template="deep_image-{subfield:04d}-{epoch:01d}.fits",
+            template="deepimage-{subfield:04d}-{epoch:01d}.fits",
             keys={"subfield": int, "epoch": int},
             ranges=dict(subfield=(0,5))
             ),
         deep_starfield_image = ImageDatasetDefinition(
-            template="deep_starfield_image-{subfield:04d}-{epoch:01d}.fits",
+            template="deepstarfield_image-{subfield:04d}-{epoch:01d}.fits",
             keys={"subfield": int, "epoch": int},
             ranges=dict(subfield=(0,5))
             ),
         epoch_catalog = CatalogDatasetDefinition(
             template="epoch_catalog-{subfield:04d}-{epoch:01d}.fits",
+            keys={"subfield": int, "epoch": int}
+            ),
+        deep_epoch_catalog = CatalogDatasetDefinition(
+            template="deepepoch_catalog-{subfield:04d}-{epoch:01d}.fits",
             keys={"subfield": int, "epoch": int}
             ),
         psf_library = ImageDatasetDefinition(
@@ -166,7 +170,7 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             keys={"subfield": int}
             ),
         deep_star_catalog = CatalogDatasetDefinition(
-            template="deep_star_catalog-{subfield:04d}.fits",
+            template="deepstar_catalog-{subfield:04d}.fits",
             keys={"subfield": int},
             ranges=dict(subfield=(0,5))
             ),
@@ -181,7 +185,7 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             keys={"subfield": int, "test": str}
             ),
         deep_src = CatalogDatasetDefinition(
-            template="deep_src-{subfield:04d}.fits",
+            template="deepsrc-{subfield:04d}.fits",
             python="lsst.afw.table.SourceCatalog",
             keys={"subfield": int},
             ranges=dict(subfield=(0,5))
