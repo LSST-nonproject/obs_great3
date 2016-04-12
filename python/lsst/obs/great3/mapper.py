@@ -175,11 +175,6 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             python="lsst.afw.table.SourceCatalog",
             keys={"subfield": int}
             ),
-        test_src = CatalogDatasetDefinition(
-            template="{test:s}/src-{subfield:03d}.fits",
-            python="lsst.afw.table.SourceCatalog",
-            keys={"subfield": int, "test": str}
-            ),
         deep_src = CatalogDatasetDefinition(
             template="deep_src-{subfield:03d}.fits",
             python="lsst.afw.table.SourceCatalog",
