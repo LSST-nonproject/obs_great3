@@ -121,7 +121,6 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
     PSTAMP_SIZE = 48
     FIELD_SIZE = 10*lsst.afw.geom.degrees
     TILE_SIZE = 2*lsst.afw.geom.degrees
-
     datasets = dict(
         image = ImageDatasetDefinition(
             template="image-{subfield:03d}-{epoch:01d}.fits",
@@ -353,6 +352,10 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             if not os.path.exists(newDir):
                 os.makedirs(newDir)
             shutil.copy(oldPath, "%s~%d" % (newPath, n))
+
+    @staticmethod
+    def getPackageName():
+        return "obs_great3"
 
     @staticmethod
     def getCameraName():
