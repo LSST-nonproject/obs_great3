@@ -53,6 +53,7 @@ class ProcessBaseConfig(lsst.pex.config.Config):
         self.measurement.slots.centroid = "centroid.sdss"
         self.measurement.slots.instFlux = None
         self.measurement.slots.modelFlux = None
+        self.measurement.slots.calibFlux = None
         self.measurement.slots.apFlux = "flux.sinc"
         self.measurement.algorithms = ["shape.sdss", "flux.sinc", "flux.psf"]
 
