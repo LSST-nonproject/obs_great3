@@ -27,10 +27,14 @@ import lsst.pex.config
 import lsst.pipe.base
 import lsst.afw.table
 import lsst.afw.image
+import lsst.afw.coord
+import lsst.afw.geom
 import lsst.meas.extensions.shapeHSM
 from lsst.meas.algorithms import SourceMeasurementTask
 import lsst.meas.multifit
+import lsst.meas.extensions.multiShapelet
 import lsst.meas.extensions.photometryKron
+import lsst.obs.great3
 
 from .buildPsf import *
 
@@ -63,7 +67,9 @@ class ProcessBaseConfig(lsst.pex.config.Config):
         self.measurement.slots.modelFlux = None
         self.measurement.slots.calibFlux = None
         self.measurement.slots.apFlux = "flux.sinc"
-        self.measurement.algorithms = ["shape.sdss", "flux.sinc", "flux.psf", "shape.hsm.regauss", "flux.kron", "cmodel"]
+        self.measurement.algorithms = ["shape.sdss", "flux.sinc", "flux.psf", "shape.hsm.regauss", "flux.kron",
+                                       "cmodel"]
+        self.measurement.algorithms.names |= lsst.meas.extensions.multiShapelet.algorithms
 
 class ProcessBaseTask(lsst.pipe.base.CmdLineTask):
 
@@ -75,6 +81,8 @@ class ProcessBaseTask(lsst.pipe.base.CmdLineTask):
         self.algMetadata = lsst.daf.base.PropertyList()
         self.makeSubtask("psf")
         self.makeSubtask("measurement", schema=self.schema, algMetadata=self.algMetadata)
+        mapper = lsst.obs.great3.Great3Mapper("")
+        self.pixelScale = mapper.PIXEL_SCALE
 
     def computeVariance(self, image):
         array = image.getArray()
@@ -95,4 +103,13 @@ class ProcessBaseTask(lsst.pipe.base.CmdLineTask):
         exposure.getMaskedImage().getImage().getArray()[:,:] = image.getArray()
         exposure.getMaskedImage().getVariance().set(self.computeVariance(image))
         exposure.setPsf(self.psf.run(dataRef, self.config.dataType))
+        wcs = lsst.afw.image.makeWcs(lsst.afw.coord.Coord(0.*lsst.afw.geom.degrees, 0.*lsst.afw.geom.degrees),
+                                     lsst.afw.geom.Point2D(0.0,0.0),
+                                     self.pixelScale.asDegrees(), 0.0, 0.0,
+                                     self.pixelScale.asDegrees())
+        exposure.setWcs(wcs)
+        calib = lsst.afw.image.Calib()
+        calib.setFluxMag0(1e12)
+        exposure.setCalib(calib)
+
         return exposure
