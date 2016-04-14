@@ -38,7 +38,13 @@ class Runner(lsst.pipe.base.TaskRunner):
     @staticmethod
     def getTargetList(parsedCmd, **kwargs):
         """Get bare butler into Task"""
-        return [(parsedCmd.id.refList, kwargs),]
+        if len(parsedCmd.id.refList) > 0 and len(parsedCmd.deep_id.refList) > 0:
+            raise RuntimeError("You can only specify id or deep_id, not both")
+        if len(parsedCmd.id.refList) > 0:
+               refList = parsedCmd.id.refList
+        else:
+               refList = parsedCmd.deep_id.refList
+        return [(refList, kwargs),]
 
 class ProcessSingleEpochBatchConfig(lsst.pex.config.Config):
     singleEpoch = lsst.pex.config.ConfigurableField(
@@ -88,6 +94,9 @@ class ProcessSingleEpochBatchTask(BatchPoolTask):
         parser = lsst.pipe.base.ArgumentParser(name=cls._DefaultName)
         parser.add_id_argument(name="--id", datasetType="image", level="image",
                                help="data ID, e.g. --id subfield=0")
+        parser.add_id_argument(name="--deep_id", datasetType="deep_image", level="image",
+                               help="deep_data ID, e.g. --deep_id subfield=0")
+
         return parser
 
     def writeConfig(self, butler, clobber=False, doBackup=False):
