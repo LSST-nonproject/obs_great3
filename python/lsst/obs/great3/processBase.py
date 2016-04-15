@@ -35,7 +35,11 @@ import lsst.meas.multifit
 import lsst.meas.extensions.multiShapelet
 import lsst.meas.extensions.photometryKron
 import lsst.obs.great3
-
+try:
+    import lsst.meas.extensions.bfd
+    bfdAvailable = True
+except ImportError:
+    bfdAvailable = False
 from .buildPsf import *
 
 class ProcessBaseConfig(lsst.pex.config.Config):
@@ -70,6 +74,14 @@ class ProcessBaseConfig(lsst.pex.config.Config):
         self.measurement.algorithms = ["shape.sdss", "flux.sinc", "flux.psf", "shape.hsm.regauss", "flux.kron",
                                        "cmodel"]
         self.measurement.algorithms.names |= lsst.meas.extensions.multiShapelet.algorithms
+        if bfdAvailable:
+            self.measurement.algorithms.names |= ["bfd.kmoment"]
+            self.measurement.algorithms['bfd.kmoment'].sigma = 2
+            self.measurement.algorithms['bfd.kmoment'].useRecVariance=False
+            self.measurement.algorithms['bfd.kmoment'].useTableVariance=True
+            self.measurement.algorithms['bfd.kmoment'].shift = True
+            self.measurement.algorithms['bfd.kmoment'].wIndex = 4
+
 
 class ProcessBaseTask(lsst.pipe.base.CmdLineTask):
 
@@ -101,7 +113,11 @@ class ProcessBaseTask(lsst.pipe.base.CmdLineTask):
         image = dataRef.get(self.config.dataType + "image", immediate=True)
         exposure = lsst.afw.image.ExposureF(image.getBBox(lsst.afw.image.PARENT))
         exposure.getMaskedImage().getImage().getArray()[:,:] = image.getArray()
-        exposure.getMaskedImage().getVariance().set(self.computeVariance(image))
+
+        variance = self.computeVariance(image)
+        exposure.getMaskedImage().getVariance().set(variance)
+        self.algMetadata.set('noise_variance',variance)
+
         exposure.setPsf(self.psf.run(dataRef, self.config.dataType))
         wcs = lsst.afw.image.makeWcs(lsst.afw.coord.Coord(0.*lsst.afw.geom.degrees, 0.*lsst.afw.geom.degrees),
                                      lsst.afw.geom.Point2D(0.0,0.0),
