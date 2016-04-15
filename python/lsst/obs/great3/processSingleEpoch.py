@@ -53,6 +53,10 @@ class ProcessSingleEpochTask(ProcessBaseTask):
         assert n * 100 == imageBBox.getWidth()
         dims = lsst.afw.geom.Extent2I(n, n)
         offset = lsst.afw.geom.Extent2I(int(numpy.min(simCat[xKey])), int(numpy.min(simCat[yKey])))
+
+        if self.config.maxObjects is not None:
+            simCat = simCat[:self.config.maxObjects]
+
         for simRecord in simCat:
             sourceRecord = sourceCat.addNew()
             sourceRecord.setId(simRecord.get(idKey))

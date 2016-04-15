@@ -63,6 +63,11 @@ class ProcessBaseConfig(lsst.pex.config.Config):
         default='',
         doc=("default data type")
     )
+    maxObjects = lsst.pex.config.Field(
+        dtype=int,
+        default=None,
+        doc=("If this is not None, then only process this many objects.")
+    )
 
     def setDefaults(self):
         lsst.pex.config.Config.setDefaults(self)
