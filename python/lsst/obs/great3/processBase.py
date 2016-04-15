@@ -93,8 +93,6 @@ class ProcessBaseTask(lsst.pipe.base.CmdLineTask):
         self.algMetadata = lsst.daf.base.PropertyList()
         self.makeSubtask("psf")
         self.makeSubtask("measurement", schema=self.schema, algMetadata=self.algMetadata)
-        mapper = lsst.obs.great3.Great3Mapper("")
-        self.pixelScale = mapper.PIXEL_SCALE
 
     def computeVariance(self, image):
         array = image.getArray()
@@ -110,6 +108,7 @@ class ProcessBaseTask(lsst.pipe.base.CmdLineTask):
         return numpy.std(borderPixels, dtype=numpy.float64)**2
 
     def buildExposure(self, dataRef):
+
         image = dataRef.get(self.config.dataType + "image", immediate=True)
         exposure = lsst.afw.image.ExposureF(image.getBBox(lsst.afw.image.PARENT))
         exposure.getMaskedImage().getImage().getArray()[:,:] = image.getArray()
@@ -119,11 +118,14 @@ class ProcessBaseTask(lsst.pipe.base.CmdLineTask):
         self.algMetadata.set('noise_variance',variance)
 
         exposure.setPsf(self.psf.run(dataRef, self.config.dataType))
+
+        pixelScale = dataRef.getButler().mapper.PIXEL_SCALE
         wcs = lsst.afw.image.makeWcs(lsst.afw.coord.Coord(0.*lsst.afw.geom.degrees, 0.*lsst.afw.geom.degrees),
                                      lsst.afw.geom.Point2D(0.0,0.0),
-                                     self.pixelScale.asDegrees(), 0.0, 0.0,
-                                     self.pixelScale.asDegrees())
+                                     pixelScale.asDegrees(), 0.0, 0.0,
+                                     pixelScale.asDegrees())
         exposure.setWcs(wcs)
+
         calib = lsst.afw.image.Calib()
         calib.setFluxMag0(1e12)
         exposure.setCalib(calib)
