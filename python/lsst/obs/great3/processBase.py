@@ -66,6 +66,7 @@ class ProcessBaseConfig(lsst.pex.config.Config):
     maxObjects = lsst.pex.config.Field(
         dtype=int,
         default=None,
+        optional=True,
         doc=("If this is not None, then only process this many objects.")
     )
 
