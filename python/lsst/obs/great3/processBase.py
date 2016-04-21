@@ -78,7 +78,7 @@ class ProcessBaseConfig(lsst.pex.config.Config):
         self.measurement.slots.calibFlux = None
         self.measurement.slots.apFlux = "flux.sinc"
         self.measurement.algorithms = ["shape.sdss", "flux.sinc", "flux.psf", "shape.hsm.regauss", "flux.kron",
-                                       "cmodel"]
+                                       "cmodel", "classification.extendedness"]
         self.measurement.algorithms.names |= lsst.meas.extensions.multiShapelet.algorithms
         if bfdAvailable:
             self.measurement.algorithms.names |= ["bfd.kmoment"]
