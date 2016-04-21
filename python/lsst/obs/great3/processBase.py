@@ -80,6 +80,7 @@ class ProcessBaseConfig(lsst.pex.config.Config):
         self.measurement.algorithms = ["shape.sdss", "flux.sinc", "flux.psf", "shape.hsm.regauss", "flux.kron",
                                        "cmodel", "classification.extendedness"]
         self.measurement.algorithms.names |= lsst.meas.extensions.multiShapelet.algorithms
+        self.measurement.algorithms['classification.extendedness'].fluxRatio = 0.985
         if bfdAvailable:
             self.measurement.algorithms.names |= ["bfd.kmoment"]
             self.measurement.algorithms['bfd.kmoment'].sigma = 2
