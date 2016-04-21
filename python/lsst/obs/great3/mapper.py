@@ -215,6 +215,11 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             python="lsst.afw.table.SourceCatalog",
             keys={"field": int, "epoch": int, "tx": int, "ty": int, "sx": int, "sy": int},
             ),
+        prior = CatalogDatasetDefinition(
+            template="prior-{subfield:04d}_{label:s}.fits",
+            python="lsst.afw.table.BaseCatalog",
+            keys={"subfield": int, "label":str},
+            ),
         )
 
     levels = dict(
