@@ -73,8 +73,11 @@ class DatasetDefinition(object):
                         old += [dataId[k]]
                 else:
                     tmp = []
-                    for old in current:
-                        tmp.extend(old + [v] for v in xrange(*self.ranges.get(k, mapper.ranges[k])))
+                    try:
+                        for old in current:
+                            tmp.extend(old + [v] for v in xrange(*self.ranges.get(k, mapper.ranges[k])))
+                    except:
+                        pass
                     current = tmp
             return current
         setattr(cls, "query_%s%s" % (name, suffix), query)
@@ -133,12 +136,12 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
         deep_image = ImageDatasetDefinition(
             template="deepimage-{subfield:04d}-{epoch:01d}.fits",
             keys={"subfield": int, "epoch": int},
-            ranges=dict(subfield=(0,5))
+            ranges=dict(subfield=(1000,2000))
             ),
         deep_starfield_image = ImageDatasetDefinition(
             template="deepstarfield_image-{subfield:04d}-{epoch:01d}.fits",
             keys={"subfield": int, "epoch": int},
-            ranges=dict(subfield=(0,5))
+            ranges=dict(subfield=(1000,2000))
             ),
         epoch_catalog = CatalogDatasetDefinition(
             template="epoch_catalog-{subfield:04d}-{epoch:01d}.fits",
@@ -163,7 +166,7 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
         deep_galaxy_catalog = CatalogDatasetDefinition(
             template="deep_galaxy_catalog-{subfield:04d}.fits",
             keys={"subfield": int},
-            ranges=dict(subfield=(0,5))
+            ranges=dict(subfield=(1000,2000))
             ),
         star_catalog = CatalogDatasetDefinition(
             template="star_catalog-{subfield:04d}.fits",
@@ -172,7 +175,7 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
         deep_star_catalog = CatalogDatasetDefinition(
             template="deepstar_catalog-{subfield:04d}.fits",
             keys={"subfield": int},
-            ranges=dict(subfield=(0,5))
+            ranges=dict(subfield=(1000,2000))
             ),
         src = CatalogDatasetDefinition(
             template="src-{subfield:04d}.fits",
@@ -188,7 +191,7 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             template="deepsrc-{subfield:04d}.fits",
             python="lsst.afw.table.SourceCatalog",
             keys={"subfield": int},
-            ranges=dict(subfield=(0,5))
+            ranges=dict(subfield=(1000,2000))
             ),
         shear = CatalogDatasetDefinition(
             template="shear.fits",
@@ -216,9 +219,10 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             keys={"field": int, "epoch": int, "tx": int, "ty": int, "sx": int, "sy": int},
             ),
         prior = CatalogDatasetDefinition(
-            template="prior-{subfield:04d}_{label:s}.fits",
+            template="prior-{subfield:04d}_b{label:d}.fits",
             python="lsst.afw.table.BaseCatalog",
-            keys={"subfield": int, "label":str},
+            keys={"subfield": int, "label":int},
+            ranges=dict(subfield=(1000,2000))
             ),
         )
 
@@ -236,13 +240,9 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
 
     ranges = dict(
         field = (0, 200, 20),
-        subfield = (0, 200),
+        subfield = (0, 1000),
         epoch = (0, 1),
-        )
-
-    deep_ranges = dict(
-        subfield = (0, 5),
-        epoch = (0, 1),
+        label = (0,100)
         )
 
     def __init__(self, root, outputRoot=None, calibRoot=None):  # calibRoot ignored
