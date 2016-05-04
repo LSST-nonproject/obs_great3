@@ -200,7 +200,7 @@ class ProcessBfdPriorTask(ProcessSingleEpochTask):
                                                                self.config.nSample,
                                                                self.config.priorSigmaBuffer,
                                                                self.config.selectionOnly)
-
+            momentPrior.setVarianceLimits(minVar, maxVar)
             for i, (src) in enumerate(sourceCat):
 
                 if self.config.sample > 0:
@@ -252,6 +252,8 @@ class ProcessBfdPriorTask(ProcessSingleEpochTask):
             metadata.set('deselectPqr',deselect.astype(numpy.float))
             metadata.set('fluxMin',self.config.snMin*sigmaFlux)
             metadata.set('fluxMax',self.config.snMax*sigmaFlux)
+            metadata.set('varMin',minVar)
+            metadata.set('varMax',maxVar)
             metadata.set('noiseFactor',self.config.noiseFactor)
             metadata.set('priorSigmaCutoff',self.config.priorSigmaCutoff)
             metadata.set('priorSigmaStep',self.config.priorSigmaStep)

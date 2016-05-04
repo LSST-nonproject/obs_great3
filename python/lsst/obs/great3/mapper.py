@@ -219,10 +219,15 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             keys={"field": int, "epoch": int, "tx": int, "ty": int, "sx": int, "sy": int},
             ),
         prior = CatalogDatasetDefinition(
-            template="prior-{subfield:04d}_b{label:d}.fits",
+            template="prior-{subfield:04d}_{label:s}.fits",
             python="lsst.afw.table.BaseCatalog",
-            keys={"subfield": int, "label":int},
+            keys={"subfield": int, "label":str},
             ranges=dict(subfield=(1000,2000))
+            ),
+        pqr = CatalogDatasetDefinition(
+            template="pqr-{subfield:04d}_{label:s}.fits",
+            python="lsst.afw.table.BaseCatalog",
+            keys={"subfield": int, "label":str},
             ),
         )
 
@@ -242,7 +247,6 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
         field = (0, 200, 20),
         subfield = (0, 1000),
         epoch = (0, 1),
-        label = (0,100)
         )
 
     def __init__(self, root, outputRoot=None, calibRoot=None):  # calibRoot ignored
