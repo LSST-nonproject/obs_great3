@@ -170,29 +170,23 @@ class ProcessBfdPqrTask(ProcessSingleEpochTask):
     def run(self, dataRefList, priorRefList):
         """Main driver
         """
-        covList = self.getCovariances()
         label = priorRefList[0].dataId['label']
-        # create list of boundaries defining covariance
-        cov_bins = numpy.append(numpy.array(covList)[:,2].astype(float),numpy.array(covList)[:,3].astype(float)[-1])
 
         self.loadPrior(priorRefList)
-        print cov_bins
         for dataRef in dataRefList:
+            self.log.info("processing %s"%str(dataRef.dataId))
             src = dataRef.get('src', immediate=True)
             cov = src[src['bfd.flags']==False][0]['bfd.momentsCov'][0]
             if cov > self.varMax or cov < self.varMin:
                 print 'Flux variance not within bounds, skipping %f,%f,%f'%(cov,self.varMin,self.varMax)
                 continue
-            #bin = numpy.digitize([cov], cov_bins, right=True)[0] - 1
-            #print 'processing',dataRef.dataId,bin
-            #if bin != label:
-            #    print 'Flux variance not within bounds, skipping'
-            #    continue
+
             outCat = self.prepCatalog(src)
             self.runMeasure(src, outCat)
             self.log.info("Writing outputs")
             dataRef.dataId['label'] = label
             dataRef.put(outCat,'pqr')
+
     @classmethod
     def _makeArgumentParser(cls):
         parser = lsst.pipe.base.ArgumentParser(name=cls._DefaultName)

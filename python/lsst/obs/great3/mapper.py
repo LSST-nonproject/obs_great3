@@ -226,8 +226,14 @@ class Great3Mapper(lsst.daf.persistence.Mapper):
             ),
         pqr = CatalogDatasetDefinition(
             template="pqr-{subfield:04d}_{label:s}.fits",
+            #template="pqr-{subfield:04d}.fits",
             python="lsst.afw.table.BaseCatalog",
             keys={"subfield": int, "label":str},
+            ),
+        merge_pqr = CatalogDatasetDefinition(
+            template="merge_pqr-{subfield:04d}.fits",
+            python="lsst.afw.table.BaseCatalog",
+            keys={"subfield": int},
             ),
         )
 
