@@ -112,9 +112,15 @@ class ProcessBfdPriorConfig(ProcessSingleEpochConfig):
     )
     sample = lsst.pex.config.Field(
         dtype=float,
-        default=-1,
+        default=0.2,
         optional=True,
         doc="Only use this fraction of the galaxies"
+    )
+    sampleDict = lsst.pex.config.DictField(
+        keytype=str, itemtype=float,
+        default={},
+        optional=True,
+        doc="Dictionary for the fraction of the galaxies used for each covariance label"
     )
     invariantCovariance = lsst.pex.config.Field(
         dtype=bool,
@@ -143,6 +149,12 @@ class ProcessBfdPriorConfig(ProcessSingleEpochConfig):
 
     def setDefaults(self):
         self.dataType = 'deep_'
+        self.sampleDict = {
+            'b0':0.4, 'b1':0.4,
+            'b2':0.5, 'b3':0.5, 'b4':0.5,
+            'b5':0.7, 'b6':0.7,
+            'b7':1, 'b8':1, 'b9':1,'b10':1,'b11':1
+        }
 
 class ProcessBfdPriorTask(ProcessSingleEpochTask):
 
@@ -181,9 +193,19 @@ class ProcessBfdPriorTask(ProcessSingleEpochTask):
         exposure.getMaskedImage().getImage().getArray()[:] *= self.config.scaleFactor
         exposure.getMaskedImage().getVariance().getArray()[:] *= self.config.scaleFactor**2
 
-        for (cov, label, minVar, maxVar) in covList:
+        for iter,(cov, label, minVar, maxVar) in enumerate(covList):
 
-            self.log.info('Creating prior for label %s' % label)
+            if self.config.sampleDict is None:
+                sample = self.config.sample
+            else:
+                if label not in self.config.sampleDict.keys():
+                    self.log.info('Cannot find label %s, in sampleDict will use the default value %f' %
+                                  (label,self.config.sample))
+                    sample = self.config.sample
+                else:
+                    sample = self.config.sampleDict[label]
+
+            self.log.info('Creating prior for label %s, with sample %f' % (label,sample))
             if numpy.any(numpy.isnan(cov)):
                 self.log.warn('Covariance matrix has nan, skipping %s'%label)
                 continue
@@ -204,7 +226,7 @@ class ProcessBfdPriorTask(ProcessSingleEpochTask):
             for i, (src) in enumerate(sourceCat):
 
                 if self.config.sample > 0:
-                    if numpy.random.uniform(0,1) > self.config.sample:
+                    if numpy.random.uniform(0,1) > sample:
                         continue
 
                 bfd_control = lsst.meas.extensions.bfd.BfdKMomentControl()
