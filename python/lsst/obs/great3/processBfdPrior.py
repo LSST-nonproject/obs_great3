@@ -110,6 +110,12 @@ class ProcessBfdPriorConfig(ProcessSingleEpochConfig):
         optional=True,
         doc="file that contains the covariance matrices"
     )
+    covFromCat = lsst.pex.config.Field(
+        dtype=bool,
+        default=False,
+        optional=True,
+        doc="get covariance matrix from the first entry in a catalog"
+    )
     sample = lsst.pex.config.Field(
         dtype=float,
         default=0.2,
@@ -171,18 +177,37 @@ class ProcessBfdPriorTask(ProcessSingleEpochTask):
         self.schema = lsst.afw.table.SourceTable.makeMinimalSchema()
 
     def getCovariances(self):
-        cat = lsst.afw.table.BaseCatalog.readFits(self.config.covFile)
-        covList = []
-        for rec in cat:
-            cov = rec.get('isoCov')
-            label = rec.get('label')
-            minVariance = rec.get('min')
-            maxVariance = rec.get('max')
-            cov = numpy.array(cov.reshape(6,6),dtype=numpy.float32)
+        if not self.config.covFromCat:
+            cat = lsst.afw.table.BaseCatalog.readFits(self.config.covFile)
+            covList = []
+            for rec in cat:
+                cov = rec.get('isoCov')
+                label = rec.get('label')
+                minVariance = rec.get('min')
+                maxVariance = rec.get('max')
+                cov = numpy.array(cov.reshape(6,6), dtype=numpy.float32)
 
-            covList.append((cov,label,minVariance,maxVariance))
+                covList.append((cov,label,minVariance,maxVariance))
 
-        return covList
+            return covList
+        else:
+             cat = lsst.afw.table.BaseCatalog.readFits(self.config.covFile)
+             mask = cat['bfd.flags'] == 1
+             cov = numpy.array(cat[mask][0].get('bfd.momentsCov').reshape(6,6), dtype=numpy.float32)
+
+             # make it isotropic
+             varE = 0.5*(cov[4,4] + cov[5,5])
+             varC = 0.5*(cov[1,1] + cov[2,2])
+             cov[1:3,:]=0
+             cov[:,1:3]=0
+             cov[4:6,:]=0
+             cov[:,4:6]=0
+             cov[1,1]=varC
+             cov[2,2]=varC
+             cov[4,4]=varE
+             cov[5,5]=varE
+
+             return [(cov,'b0',-1,-1)]
 
     def run(self, dataRef):
 
