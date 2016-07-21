@@ -69,6 +69,12 @@ class ProcessBaseConfig(lsst.pex.config.Config):
         optional=True,
         doc=("If this is not None, then only process this many objects.")
     )
+    numPerRow =  lsst.pex.config.Field(
+        dtype=int,
+        default=100,
+        optional=True,
+        doc=("How many objects per row")
+    )
 
     def setDefaults(self):
         lsst.pex.config.Config.setDefaults(self)
@@ -103,8 +109,8 @@ class ProcessBaseTask(lsst.pipe.base.CmdLineTask):
 
     def computeVariance(self, image):
         array = image.getArray()
-        n = array.shape[0] / 100
-        assert n * 100 == array.shape[0]
+        n = array.shape[0] / self.config.numPerRow
+        assert n * self.config.numPerRow == array.shape[0]
         mask = numpy.zeros(array.shape, dtype=bool)
         for i in range(self.config.varianceBorderWidth):
             mask[i::n,:] = True

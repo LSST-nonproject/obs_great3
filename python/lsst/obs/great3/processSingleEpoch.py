@@ -49,8 +49,8 @@ class ProcessSingleEpochTask(ProcessBaseTask):
         xKey = simCat.schema.find('x').key
         yKey = simCat.schema.find('y').key
         idKey = simCat.schema.find('num').key
-        n = imageBBox.getWidth() / 100
-        assert n * 100 == imageBBox.getWidth()
+        n = imageBBox.getWidth() / self.config.numPerRow
+        assert n * self.config.numPerRow == imageBBox.getWidth()
         dims = lsst.afw.geom.Extent2I(n, n)
         offset = lsst.afw.geom.Extent2I(int(numpy.min(simCat[xKey])), int(numpy.min(simCat[yKey])))
 
