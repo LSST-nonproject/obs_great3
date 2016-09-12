@@ -27,17 +27,46 @@ import lsst.pex.config
 import lsst.pipe.base
 import lsst.afw.table
 import lsst.afw.image
+from lsst.meas.algorithms import  SourceDetectionTask, SourceMeasurementTask
+from lsst.meas.deblender import SourceDeblendTask
 
 from .processBase import *
 
 class ProcessSingleEpochConfig(ProcessBaseConfig):
-    pass
+    doDetection = lsst.pex.config.Field(
+        dtype=bool,
+        default=False,
+        doc=("run source detection on the image")
+    )
+    detection = lsst.pex.config.ConfigurableField(
+        target = SourceDetectionTask,
+        doc = "detection algorithm",
+    )
+    doDeblend = lsst.pex.config.Field(
+        dtype=bool,
+        default=False,
+        doc=("run deblending on the image")
+    )
+    deblend = lsst.pex.config.ConfigurableField(
+        target = SourceDeblendTask,
+        doc = "deblend algorithm",
+    )
+
 
 class ProcessSingleEpochTask(ProcessBaseTask):
 
     ConfigClass = ProcessSingleEpochConfig
 
     _DefaultName = "processSingleEpoch"
+
+    def __init__(self, **kwargs):
+        super(ProcessSingleEpochTask, self).__init__(**kwargs)
+
+        if self.config.doDetection:
+            self.makeSubtask("detection", schema=self.schema)
+
+        if self.config.doDeblend:
+            self.makeSubtask("deblend", schema=self.schema)
 
     def buildSourceCatalog(self, imageBBox, dataRef):
         """Build an empty source catalog, using the provided sim catalog's position to generate
@@ -71,6 +100,17 @@ class ProcessSingleEpochTask(ProcessBaseTask):
     def run(self, dataRef):
         exposure = self.buildExposure(dataRef)
         sourceCat = self.buildSourceCatalog(exposure.getBBox(lsst.afw.image.PARENT), dataRef)
+
+        if self.config.doDetection:
+            table = lsst.afw.table.SourceTable.make(self.schema)
+            table.setMetadata(self.algMetadata)
+
+            detections = self.detection.makeSourceCatalog(table, exposure)
+            sourceCat = detections.sources
+
+        if self.config.doDeblend:
+            self.deblend.run(exposure, sourceCat, exposure.getPsf())
+
         self.measurement.run(exposure, sourceCat)
         dataRef.put(sourceCat, self.config.dataType + "src")
 
