@@ -155,12 +155,6 @@ class ProcessBfdPriorConfig(ProcessSingleEpochConfig):
 
     def setDefaults(self):
         self.dataType = 'deep_'
-        self.sampleDict = {
-            'b0':0.4, 'b1':0.4,
-            'b2':0.5, 'b3':0.5, 'b4':0.5,
-            'b5':0.7, 'b6':0.7,
-            'b7':1, 'b8':1, 'b9':1,'b10':1,'b11':1
-        }
 
 class ProcessBfdPriorTask(ProcessSingleEpochTask):
 
@@ -192,7 +186,7 @@ class ProcessBfdPriorTask(ProcessSingleEpochTask):
             return covList
         else:
              cat = lsst.afw.table.BaseCatalog.readFits(self.config.covFile)
-             mask = cat['bfd.flags'] == 1
+             mask = cat['bfd.flags'] == 0
              cov = numpy.array(cat[mask][0].get('bfd.momentsCov').reshape(6,6), dtype=numpy.float32)
 
              # make it isotropic
@@ -287,7 +281,6 @@ class ProcessBfdPriorTask(ProcessSingleEpochTask):
 
             selectionPqr = momentPrior.selectionProbability(cov)
             deselect = selectionPqr.copy()
-
             deselect[0] = 1 - selectionPqr[0]
             for i in range(1,6):
                 deselect[i] *= -1.
