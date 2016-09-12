@@ -177,7 +177,7 @@ class ProcessBfdPqrTask(ProcessSingleEpochTask):
             self.log.info("processing %s"%str(dataRef.dataId))
             src = dataRef.get('src', immediate=True)
             cov = src[src['bfd.flags']==False][0]['bfd.momentsCov'][0]
-            if cov > self.varMax or cov < self.varMin:
+            if ( (cov > self.varMax or cov < self.varMin) and (self.varMax > 0 and self.varMin > 0) ):
                 print 'Flux variance not within bounds, skipping %f,%f,%f'%(cov,self.varMin,self.varMax)
                 continue
 
