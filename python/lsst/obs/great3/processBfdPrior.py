@@ -116,6 +116,12 @@ class ProcessBfdPriorConfig(ProcessSingleEpochConfig):
         optional=True,
         doc="get covariance matrix from the first entry in a catalog"
     )
+    isoCov = lsst.pex.config.Field(
+        dtype=bool,
+        default=True,
+        optional=True,
+        doc="isotropize covariance matrix"
+    )
     sample = lsst.pex.config.Field(
         dtype=float,
         default=0.2,
@@ -190,16 +196,17 @@ class ProcessBfdPriorTask(ProcessSingleEpochTask):
              cov = numpy.array(cat[mask][0].get('bfd.momentsCov').reshape(6,6), dtype=numpy.float32)
 
              # make it isotropic
-             varE = 0.5*(cov[4,4] + cov[5,5])
-             varC = 0.5*(cov[1,1] + cov[2,2])
-             cov[1:3,:]=0
-             cov[:,1:3]=0
-             cov[4:6,:]=0
-             cov[:,4:6]=0
-             cov[1,1]=varC
-             cov[2,2]=varC
-             cov[4,4]=varE
-             cov[5,5]=varE
+             if self.config.isoCov:
+                 varE = 0.5*(cov[4,4] + cov[5,5])
+                 varC = 0.5*(cov[1,1] + cov[2,2])
+                 cov[1:3,:]=0
+                 cov[:,1:3]=0
+                 cov[4:6,:]=0
+                 cov[:,4:6]=0
+                 cov[1,1]=varC
+                 cov[2,2]=varC
+                 cov[4,4]=varE
+                 cov[5,5]=varE
 
              return [(cov,'b0',-1,-1)]
 
