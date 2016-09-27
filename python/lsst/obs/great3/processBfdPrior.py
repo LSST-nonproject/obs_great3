@@ -241,7 +241,7 @@ class ProcessBfdPriorTask(ProcessSingleEpochTask):
             sigmaFlux = numpy.sqrt(cov[0,0])
             momentPrior = lsst.meas.extensions.bfd.MomentPrior(self.config.snMin*sigmaFlux,
                                                                self.config.snMax*sigmaFlux,
-                                                               cov, True,
+                                                               cov, False,
                                                                self.config.noiseFactor,
                                                                self.config.priorSigmaCutoff,
                                                                self.config.priorSigmaStep,
