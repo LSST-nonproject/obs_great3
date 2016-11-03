@@ -274,6 +274,8 @@ class ProcessBfdPriorTask(ProcessSingleEpochTask):
                 bfd_control.reCentroidPsf = self.config.reCentroidPsf
 
                 try:
+                    if i%1000 == 0:
+                        print i
                     if src.get('bfd.flags'):
                         continue
 
