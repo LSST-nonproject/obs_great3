@@ -107,7 +107,7 @@ class ProcessBaseTask(lsst.pipe.base.CmdLineTask):
         self.algMetadata = lsst.daf.base.PropertyList()
         self.makeSubtask("psf")
         self.makeSubtask("measurement", schema=self.schema, algMetadata=self.algMetadata)
-
+        self.bfdAvailable = bfdAvailable
     def computeVariance(self, image):
         array = image.getArray()
         n = array.shape[0] / self.config.numPerRow

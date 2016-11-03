@@ -174,18 +174,23 @@ class ProcessBfdPqrTask(ProcessSingleEpochTask):
 
         self.loadPrior(priorRefList)
         for dataRef in dataRefList:
-            self.log.info("processing %s"%str(dataRef.dataId))
-            src = dataRef.get('src', immediate=True)
-            cov = src[src['bfd.flags']==False][0]['bfd.momentsCov'][0]
-            if ( (cov > self.varMax or cov < self.varMin) and (self.varMax > 0 and self.varMin > 0) ):
-                print 'Flux variance not within bounds, skipping %f,%f,%f'%(cov,self.varMin,self.varMax)
-                continue
+            try:
+                self.log.info("processing %s" % str(dataRef.dataId))
+                src = dataRef.get('src', immediate=True)
+                cov = src[src['bfd.flags']==False][0]['bfd.momentsCov'][0]
 
-            outCat = self.prepCatalog(src)
-            self.runMeasure(src, outCat)
-            self.log.info("Writing outputs")
-            dataRef.dataId['label'] = label
-            dataRef.put(outCat,'pqr')
+                if ( (cov > self.varMax or cov < self.varMin) and (self.varMax > 0 and self.varMin > 0) ):
+                    print 'Flux variance not within bounds, skipping %f,%f,%f'%(cov,self.varMin,self.varMax)
+                    continue
+
+                outCat = self.prepCatalog(src)
+                self.runMeasure(src, outCat)
+                self.log.info("Writing outputs")
+                dataRef.dataId['label'] = label
+                dataRef.put(outCat,'pqr')
+            except Exception as e:
+                 self.log.warn("Could not process %s" % e)
+                 continue
 
     @classmethod
     def _makeArgumentParser(cls):
