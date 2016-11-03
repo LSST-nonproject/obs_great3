@@ -94,6 +94,7 @@ class ProcessBaseConfig(lsst.pex.config.Config):
             self.measurement.algorithms['bfd.kmoment'].useTableVariance=True
             self.measurement.algorithms['bfd.kmoment'].shift = True
             self.measurement.algorithms['bfd.kmoment'].wIndex = 4
+            self.measurement.algorithms['bfd.kmoment'].useNoisePs = False
 
 
 class ProcessBaseTask(lsst.pipe.base.CmdLineTask):
