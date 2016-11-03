@@ -134,6 +134,12 @@ class ProcessBfdPriorConfig(ProcessSingleEpochConfig):
         optional=True,
         doc="Dictionary for the fraction of the galaxies used for each covariance label"
     )
+    useLabels = lsst.pex.config.ListField(
+        dtype=str,
+        default=[],
+        optional=True,
+        doc="List of labels for which to build the prior. "
+    )
     invariantCovariance = lsst.pex.config.Field(
         dtype=bool,
         default=False,
@@ -220,6 +226,9 @@ class ProcessBfdPriorTask(ProcessSingleEpochTask):
         exposure.getMaskedImage().getVariance().getArray()[:] *= self.config.scaleFactor**2
 
         for iter,(cov, label, minVar, maxVar) in enumerate(covList):
+
+            if (label not in self.config.useLabels) and len(self.config.useLabels) > 0:
+                continue
 
             if self.config.sampleDict is None:
                 sample = self.config.sample
