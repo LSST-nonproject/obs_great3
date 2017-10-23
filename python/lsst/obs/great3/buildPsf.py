@@ -37,6 +37,11 @@ class BuildControlPsfConfig(lsst.pex.config.Config):
         doc="kernel to use when shifting the star image; see afw.math.makeWarpingKernel for choices",
         default="lanczos5"
         )
+    size = lsst.pex.config.Field(
+        dtype=int,
+        doc="size of subimage of the postage PSF stamp",
+        default=64
+        )
 
 class BuildControlPsfTask(lsst.pipe.base.Task):
 
@@ -49,8 +54,8 @@ class BuildControlPsfTask(lsst.pipe.base.Task):
 
     def run(self, dataRef, dataType):
         image = dataRef.get(dataType + "starfield_image", immediate=True)
-        nx = image.getWidth()/3-1
-        ny = image.getWidth()/3-1
+        nx = self.config.size-1
+        ny = self.config.size-1
         # extract only the lower-left image
         bbox = lsst.afw.geom.Box2I(lsst.afw.geom.Point2I(0,0), lsst.afw.geom.Extent2I(nx, ny))
         image = image[bbox].convertD()
