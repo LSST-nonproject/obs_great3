@@ -38,11 +38,35 @@ class ProcessBfdPriorConfig(ProcessSingleEpochConfig):
         optional=True,
         doc="Minimun flux S/N"
     )
+    fluxMin = lsst.pex.config.Field(
+        dtype=float,
+        default=None,
+        optional=True,
+        doc="Minimun flux"
+    )
+    magMin = lsst.pex.config.Field(
+        dtype=float,
+        default=None,
+        optional=True,
+        doc="Minimun magnitude"
+    )
     snMax = lsst.pex.config.Field(
         dtype=float,
         default=40,
         optional=True,
         doc="Maximum flux S/N"
+    )
+    fluxMax = lsst.pex.config.Field(
+        dtype=float,
+        default=None,
+        optional=True,
+        doc="Maximum flux"
+    )
+    magMax = lsst.pex.config.Field(
+        dtype=float,
+        default=None,
+        optional=True,
+        doc="Maximum magnitude"
     )
     noiseFactor = lsst.pex.config.Field(
         dtype=float,
@@ -248,8 +272,22 @@ class ProcessBfdPriorTask(ProcessSingleEpochTask):
             var = float(numpy.median(exposure.getMaskedImage().getVariance().getArray()))
             ngood = 0
             sigmaFlux = numpy.sqrt(cov[0,0])
-            momentPrior = lsst.meas.extensions.bfd.MomentPrior(self.config.snMin*sigmaFlux,
-                                                               self.config.snMax*sigmaFlux,
+
+            # If converting from magnitude assume the zeropoint is set to 27 as it is for all the coadds currently
+            minFlux = self.config.snMin*sigmaFlux
+            if self.config.fluxMin is not None:
+                minFlux = self.config.fluxMin
+            elif self.config.magMin is not None:
+                minFlux = 10**(-0.4*(self.config.magMin-27))
+
+
+            maxFlux = self.config.snMax*sigmaFlux
+            if self.config.fluxMax is not None:
+                maxFlux = self.config.fluxMax
+            elif self.config.magMax is not None:
+                maxFlux = 10**(-0.4*(self.config.magMax-27))
+
+            momentPrior = lsst.meas.extensions.bfd.MomentPrior(minFlux, maxFlux,
                                                                cov, False,
                                                                self.config.noiseFactor,
                                                                self.config.priorSigmaCutoff,
@@ -308,8 +346,8 @@ class ProcessBfdPriorTask(ProcessSingleEpochTask):
             metadata.set('cov',numpy.array(cov.flatten(),dtype=float))
             metadata.set('selectionPqr',selectionPqr.astype(numpy.float))
             metadata.set('deselectPqr',deselect.astype(numpy.float))
-            metadata.set('fluxMin',self.config.snMin*sigmaFlux)
-            metadata.set('fluxMax',self.config.snMax*sigmaFlux)
+            metadata.set('fluxMin',minFlux)
+            metadata.set('fluxMax',maxFlux)
             metadata.set('varMin',minVar)
             metadata.set('varMax',maxVar)
             metadata.set('noiseFactor',self.config.noiseFactor)
