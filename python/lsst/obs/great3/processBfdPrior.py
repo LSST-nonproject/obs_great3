@@ -297,7 +297,8 @@ class ProcessBfdPriorTask(ProcessSingleEpochTask):
                                                                self.config.selectionOnly)
             momentPrior.setVarianceLimits(minVar, maxVar)
             for i, (src) in enumerate(sourceCat):
-
+                if i%1000 == 0:
+                        print i
                 if self.config.sample > 0:
                     if numpy.random.uniform(0,1) > sample:
                         continue
@@ -312,12 +313,13 @@ class ProcessBfdPriorTask(ProcessSingleEpochTask):
                 bfd_control.reCentroidPsf = self.config.reCentroidPsf
 
                 try:
-                    if i%1000 == 0:
-                        print i
+
                     if src.get('bfd.flags'):
                         continue
 
+                    # The bfd center gave weird errors?
                     pos = src.get('bfd.center')
+
                     priorGalaxy = lsst.meas.extensions.bfd.PriorGalaxy(bfd_control)
                     passed = priorGalaxy.addImage(src, exposure, pos, var)
 
