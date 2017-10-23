@@ -186,7 +186,10 @@ class ProcessSingleEpochTask(ProcessBaseTask):
                 mask = exposure.getMaskedImage().getMask()
                 mask &= (mask.getPlaneBitMask("DETECTED"))
                 iso_mask = (mask.getArray() != (mask.getPlaneBitMask("DETECTED")))
-                variance = numpy.var(exposure.getMaskedImage().getImage().getArray()[iso_mask], dtype=numpy.float64)
+                vals = exposure.getMaskedImage().getImage().getArray()[iso_mask]
+                sigma_mad = 1.4826*numpy.median(numpy.abs(vals - numpy.median(vals)))
+                good_mask = numpy.abs(vals < 10*sigma_mad)
+                variance = numpy.var(vals[good_mask], dtype=numpy.float64)
                 self.log.info('Computed variance after detection: %f' % variance)
                 exposure.getMaskedImage().getVariance().set(variance)
                 self.algMetadata.set('noise_variance',variance)
